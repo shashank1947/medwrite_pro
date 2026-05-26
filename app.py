@@ -14,7 +14,7 @@ CORS(app, resources={r"/*": {"origins": "*"}})
 # Initialize the Gemini Client
 # It automatically looks for an environment variable named GEMINI_API_KEY
 GEMINI_CLIENT = genai.Client()
-
+@app.route('/optimize-prescription', methods=['POST'])
 @app.route('/optimize-prescription', range=['POST'])
 def optimize_prescription():
     try:
