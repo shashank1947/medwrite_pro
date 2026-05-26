@@ -8,14 +8,12 @@ from google import genai
 from google.genai import types
 
 app = Flask(__name__)
-# Allow CORS for your Vercel frontend URL
 CORS(app, resources={r"/*": {"origins": "*"}})
 
 # Initialize the Gemini Client
-# It automatically looks for an environment variable named GEMINI_API_KEY
 GEMINI_CLIENT = genai.Client()
+
 @app.route('/optimize-prescription', methods=['POST'])
-@app.route('/optimize-prescription', range=['POST'])
 def optimize_prescription():
     try:
         request_data = request.get_json()
@@ -37,7 +35,7 @@ def optimize_prescription():
             "'medication', 'dosage', 'duration', and 'instructions'. Do not add markdown formatting outside JSON."
         )
 
-        # Call Gemini 2.5 Flash (Optimized for fast multimodal tasks)
+        # Call Gemini 2.5 Flash
         response = GEMINI_CLIENT.models.generate_content(
             model='gemini-2.5-flash',
             contents=[pil_image, system_prompt],
@@ -54,6 +52,5 @@ def optimize_prescription():
         return jsonify({'error': 'Internal AI processing crash', 'details': str(e)}), 500
 
 if __name__ == '__main__':
-    # Bind to PORT environment variable assigned by the cloud platform
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port)
