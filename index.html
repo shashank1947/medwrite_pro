@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MedWrite Plus - Advanced Medical Portal</title>
+    <title>MedWrite Pro - Advanced Medical Portal</title>
     <script src="https://cdn.auth0.com/js/auth0-spa-js/2.0/auth0-spa-js.production.js"></script>
     <style>
         body {
@@ -135,7 +135,7 @@
 
         <div class="capture-engine">
             <button class="btn btn-gray">📸 Upload Prescription Photo</button>
-            <button class="btn btn-gray">📹 Capture from Device Camera</button>
+            <button class="btn btn-gray">📷 Capture from Device Camera</button>
             <button class="btn btn-gray">🎙️ Record Voice Prescription Note</button>
         </div>
 
@@ -169,9 +169,10 @@
     const ctx = canvas.getContext('2d');
     let drawing = false;
 
+    // Resizes canvas coordinate maps correctly when browser paints
     function fitCanvas() {
-        canvas.width = canvas.parentElement.clientWidth;
-        canvas.height = canvas.parentElement.clientHeight || 350;
+        canvas.width = canvas.offsetWidth;
+        canvas.height = canvas.offsetHeight || 350;
         ctx.lineWidth = 3;
         ctx.lineCap = 'round';
         ctx.strokeStyle = '#1a202c';
@@ -181,17 +182,21 @@
         fitCanvas(); 
         initAuth0(); 
     };
+    window.onresize = fitCanvas;
 
-    // Drawing functionality logic tracking
-    canvas.addEventListener('mousedown', () => drawing = true);
+    // Drawing Canvas Listeners
+    canvas.addEventListener('mousedown', (e) => {
+        drawing = true;
+        const rect = canvas.getBoundingClientRect();
+        ctx.beginPath();
+        ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
+    });
     canvas.addEventListener('mouseup', () => { drawing = false; ctx.beginPath(); });
     canvas.addEventListener('mousemove', (e) => {
         if (!drawing) return;
         const rect = canvas.getBoundingClientRect();
         ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
         ctx.stroke();
-        ctx.beginPath();
-        ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
     });
 
     function clearPad() {
@@ -199,40 +204,38 @@
         document.getElementById('ai-response-well').innerText = 'Local backend online. Write a prescription on the pad and hit "Optimize AI" to leverage Gemini insights.';
     }
 
-    // 🔒 Auth0 Setup Configuration Core
+    // 🔒 AUTH0 REDIRECT PIPELINE CORE
     async function initAuth0() {
         try {
             auth0Client = await auth0SDK.createAuth0Client({
-                domain: "YOUR_AUTH0_DOMAIN",       // 👈 Replace with your Auth0 Domain
-                client_id: "YOUR_AUTH0_CLIENT_ID",   // 👈 Replace with your Auth0 Client ID
+                domain: "YOUR_AUTH0_DOMAIN",       // 👈 Put your Auth0 Domain here
+                client_id: "YOUR_AUTH0_CLIENT_ID",   // 👈 Put your Auth0 Client ID here
                 authorizationParams: {
                     redirect_uri: window.location.origin
                 }
             });
 
-            // Parse returned authorization codes from authentication redirect
             const query = window.location.search;
             if (query.includes("code=") && query.includes("state=")) {
                 await auth0Client.handleRedirectCallback();
                 window.history.replaceState({}, document.title, window.location.pathname);
             }
 
-            // Verify session authenticity logs
             if (await auth0Client.isAuthenticated()) {
                 const user = await auth0Client.getUser();
-                console.log("Secure authentication session active for user profile:", user.email);
+                console.log("Secure authentication context live:", user.email);
             }
         } catch (err) {
-            console.error("Auth0 runtime initialisation failure:", err);
+            console.error("Auth0 runtime initialization error:", err);
         }
     }
 
     async function triggerAuth0Login() {
-        if (!auth0Client) return alert("Auth0 identity verification engine is loading...");
+        if (!auth0Client) return alert("Auth0 identity engines are syncing...");
         await auth0Client.loginWithRedirect();
     }
 
-    // 📡 Live Render AI Pipeline Connection
+    // 📡 RENDER CLOUD API ENGINE LINK
     async function runPrescriptionOptimizationAI() {
         const well = document.getElementById('ai-response-well');
         well.innerHTML = "<span style='color: #3182ce;'>Streaming strokes to Render backend AI engines...</span>";
